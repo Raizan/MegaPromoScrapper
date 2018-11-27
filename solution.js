@@ -8,9 +8,14 @@ rp(rootUrl)
     .then(html => {
         const $ = cheerio.load(html);
 
-        // get identifiers as a base to find cat url
+        // ids and category title
         var categories = {};
         var idList = []; 
+        
+        // AJAX url for pagination
+        var ajaxUrl = '';
+        
+        // get identifiers as a base to find cat url
         const subcatPromo = $('#subcatpromo [title]');
 
         for (let i = 0; i < subcatPromo.length; i++) {
@@ -29,6 +34,14 @@ rp(rootUrl)
                         categories[elem.attribs.id] = elem.children[0].data;
                     }
         });
+
+        // get AJAX url for pagination
+        const getAjaxUrl = $(`script:contains(${phpFilename})`)
+            .last().html();
+
+        var regex = /load\(\"(.+)\)/
+        ajaxUrl = getAjaxUrl.match(regex)[1];
+        ajaxUrl = ajaxUrl.split('+');
     })
     .catch(err => {
         console.error(err);
