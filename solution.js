@@ -14,6 +14,9 @@ rp(rootUrl)
         
         // AJAX url for pagination
         var ajaxUrl = '';
+
+        // product and subcat index table
+        var indexTable = {};
         
         // get identifiers as a base to find cat url
         const subcatPromo = $('#subcatpromo [title]');
@@ -36,12 +39,24 @@ rp(rootUrl)
         });
 
         // get AJAX url for pagination
-        const getAjaxUrl = $(`script:contains(${phpFilename})`)
-            .last().html();
+        // const getAjaxUrl = $(`script:contains(${phpFilename})`)
+        //     .last().html();
 
-        var regex = /load\(\"(.+)\)/
-        ajaxUrl = getAjaxUrl.match(regex)[1];
-        ajaxUrl = ajaxUrl.split('+');
+        // var regex = /load\(\"(.+)\)/
+        // ajaxUrl = getAjaxUrl.match(regex)[1];
+        // ajaxUrl = ajaxUrl.split('+');
+
+        // get AJAX url for product and subcat of each #identifier
+        const getProductSubcatScript = $(`script:contains(${phpFilename})`).first().html();
+        idList.forEach(id => {
+            let regex = new RegExp(`${id}.+\\n.+load\\(\\"(.+)\\"`);
+            if (!(id in indexTable)) {
+                indexTable[id] = getProductSubcatScript.match(regex)[1] + `&page=`;
+            }
+        });
+
+        // todo get max pages in pagination
+        // todo create tasks for navigating pages
     })
     .catch(err => {
         console.error(err);
