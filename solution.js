@@ -1,10 +1,11 @@
 const rp = require('request-promise');
 const Promise = rp.Promise = require('bluebird');
 const cheerio = require('cheerio');
-const rootUrl = 'https://www.bankmega.com/promolainnya.php';
-const phpFilename = rootUrl.split('/').pop();
+const scrapUrl = 'https://www.bankmega.com/promolainnya.php';
+const rootUrl = 'https://www.bankmega.com/';
+const phpFilename = scrapUrl.split('/').pop();
 
-rp(rootUrl)
+rp(scrapUrl)
     .then(html => {
         const $ = cheerio.load(html);
 
@@ -12,11 +13,8 @@ rp(rootUrl)
         var categories = {};
         var idList = []; 
         
-        // AJAX url for pagination
-        var ajaxUrl = '';
-
-        // product and subcat index table
-        var indexTable = {};
+        // product and subcat url table
+        var urlTable = {};
         
         // get identifiers as a base to find cat url
         const subcatPromo = $('#subcatpromo [title]');
@@ -38,23 +36,17 @@ rp(rootUrl)
                     }
         });
 
-        // get AJAX url for pagination
-        // const getAjaxUrl = $(`script:contains(${phpFilename})`)
-        //     .last().html();
-
-        // var regex = /load\(\"(.+)\)/
-        // ajaxUrl = getAjaxUrl.match(regex)[1];
-        // ajaxUrl = ajaxUrl.split('+');
-
         // get AJAX url for product and subcat of each #identifier
         const getProductSubcatScript = $(`script:contains(${phpFilename})`).first().html();
         idList.forEach(id => {
             let regex = new RegExp(`${id}.+\\n.+load\\(\\"(.+)\\"`);
-            if (!(id in indexTable)) {
-                indexTable[id] = getProductSubcatScript.match(regex)[1] + `&page=`;
+            if (!(id in urlTable)) {
+                urlTable[id] = rootUrl 
+                    + getProductSubcatScript.match(regex)[1] 
+                    + `&page=`;
             }
         });
-
+        console.log(urlTable);
         // todo get max pages in pagination
         // todo create tasks for navigating pages
     })
