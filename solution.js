@@ -15,6 +15,9 @@ rp(scrapUrl)
         
         // product and subcat url table
         var urlTable = {};
+
+        // max page numbers in pagination
+        var maxPage = 0;
         
         // get identifiers as a base to find cat url
         const subcatPromo = $('#subcatpromo [title]');
@@ -46,9 +49,12 @@ rp(scrapUrl)
                     + `&page=`;
             }
         });
-        console.log(urlTable);
-        // todo get max pages in pagination
-        // todo create tasks for navigating pages
+        
+        // get max page number in pagination
+        const getMaxPage = $(`#paging1`)[0].attribs.title;
+        maxPage = getMaxPage.split(' ').pop();
+        
+        // create tasks for navigating pages and fetch contents
     })
     .catch(err => {
         console.error(err);
