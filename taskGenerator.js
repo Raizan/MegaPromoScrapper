@@ -2,7 +2,7 @@ const rp = require('request-promise');
 const cheerio = require('cheerio');
 const Promise = rp.Promise = require('bluebird');
 const fetchContents = require('./fetchContents');
-
+const url = 'https://www.bankmega.com/ajax.promolainnya.php?product=2&page=';
 /**
  * Generate tasks to scrap pages by executing fetchContents
  * as many as maximum page in pagination.
@@ -24,8 +24,15 @@ const fetchContents = require('./fetchContents');
             let taskUrls = [];
 
             // Get max page string
-            const getMaxPage = $(`#paging1`)[0].attribs.title;
-            maxPage = getMaxPage.split(' ').pop();
+            const getMaxPage = $(`#paging1`)[0];
+            if (getMaxPage !== undefined) {
+                maxPage = getMaxPage.attribs.title.split(' ').pop();
+            }
+            else {
+                // No pagination. Break function immediately.
+                return;
+            }
+            
 
             for (let i = 1; i <= maxPage; i++) {
                 let pagingUrl = `${url}${i}`;
@@ -43,6 +50,17 @@ const fetchContents = require('./fetchContents');
                 merged[categoryName] = [].concat.apply([], results);
                 return merged;
             });
+        })
+        .then(merged => {
+            if (merged !== undefined) {
+                return merged;
+            }
+            else {
+                console.log(`${categoryName} has no pagination`);
+                let emptyObject = {};
+                emptyObject[categoryName] = [];
+                return emptyObject;
+            }
         })
         .catch(err => {
             console.log(err);

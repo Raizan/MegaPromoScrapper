@@ -47,7 +47,7 @@ rp(scrapUrl)
         // Get AJAX url for product and subcat of each #identifier
         const getProductSubcatScript = $(`script:contains(${phpFilename})`).first().html();
         for (let id in categories) {
-            let regex = new RegExp(`${id}.+\\n.+load\\(\\"(.+)\\"`);
+            let regex = new RegExp(`${id}\\".+\\n.+load\\(\\"(.+)\\"`);
             if (!(categories[id] in categoryUrlTable)) {
                 let categoryUrl = getProductSubcatScript.match(regex)[1];
                 categoryUrlTable[categories[id]] = `${rootUrl}/${categoryUrl}&page=`;
