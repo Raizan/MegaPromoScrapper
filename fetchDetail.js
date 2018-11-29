@@ -3,14 +3,20 @@ const cheerio = require('cheerio');
 const config = require('./config.json');
 const rootUrl = config.rootUrl;
 
-// fetch promo_detail.php contents
+/**
+ * Scrap promo detail in promo_detail.php. 
+ * 
+ * @param {string}  url     promo_detail.php?id=
+ * 
+ * @returns {Object}    Object of promo detail
+ */
 async function fetchDetail(url) {
     return rp(url)
         .then(html => {
             const $ = cheerio.load(html);
             const title = $(`.titleinside h3`).text();
             const area = $(`.area`).text().split(' ').pop().trim();
-            var regex = /\n\t+/
+            let regex = /\n\t+/
             const periode = $(`.periode`).text()
                             .split(':')
                             .pop()
@@ -22,7 +28,7 @@ async function fetchDetail(url) {
                 'title': title,
                 'area': area,
                 'periode': periode,
-                'image': rootUrl + image
+                'image': `${rootUrl}${image}`
             };
         })
         .catch(err => {

@@ -1,4 +1,5 @@
 {
     "scrapUrl": "https://www.bankmega.com/promolainnya.php",
-    "rootUrl": "https://www.bankmega.com/"
+    "rootUrl": "https://www.bankmega.com",
+    "solutionFile": "solution.json"
 }

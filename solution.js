@@ -1,37 +1,40 @@
 const rp = require('request-promise');
 const Promise = rp.Promise = require('bluebird');
 const cheerio = require('cheerio');
-
+const taskGenerator = require('./taskGenerator');
+const fs = require('fs');
 const config = require('./config.json');
+
 const scrapUrl = config.scrapUrl;
 const rootUrl = config.rootUrl;
+const solutionFile = config.solutionFile;
+
 const phpFilename = scrapUrl.split('/').pop();
 
+console.time('Execution time');
 rp(scrapUrl)
     .then(html => {
         const $ = cheerio.load(html);
 
         // ids and category title
-        var categories = {};
-        var idList = []; 
+        let categories = {};
+        let idList = []; 
         
-        // product and subcat url table
-        var urlTable = {};
+        // Product and subcat url table
+        let categoryUrlTable = {};
 
-        // max page numbers in pagination
-        var maxPage = 0;
-        
-        // get identifiers as a base to find cat url
+        // Get identifiers as a base to find category url
+        // For subcategory 
         const subcatPromo = $('#subcatpromo [title]');
 
         for (let i = 0; i < subcatPromo.length; i++) {
-            var sub_id = subcatPromo[i].attribs.id
+            let sub_id = subcatPromo[i].attribs.id
             idList.push(sub_id);
             if (!(sub_id in categories)) {
                 categories[sub_id] = subcatPromo[i].attribs.title;
             }
         }
-
+        // For product
         const productPromo = 
             $(`#promolain_inside ~ div`)
                 .each(function(i, elem) {
@@ -41,22 +44,32 @@ rp(scrapUrl)
                     }
         });
 
-        // get AJAX url for product and subcat of each #identifier
+        // Get AJAX url for product and subcat of each #identifier
         const getProductSubcatScript = $(`script:contains(${phpFilename})`).first().html();
-        idList.forEach(id => {
+        for (let id in categories) {
             let regex = new RegExp(`${id}.+\\n.+load\\(\\"(.+)\\"`);
-            if (!(id in urlTable)) {
-                urlTable[id] = rootUrl +
-                    getProductSubcatScript.match(regex)[1] +
-                    `&page=`;
+            if (!(categories[id] in categoryUrlTable)) {
+                let categoryUrl = getProductSubcatScript.match(regex)[1];
+                categoryUrlTable[categories[id]] = `${rootUrl}/${categoryUrl}&page=`;
             }
+        }
+        
+        // Feed generator with category links
+        let promises = [];
+
+        for (let cat in categoryUrlTable) {
+            promises.push(taskGenerator(categoryUrlTable[cat], cat));
+        }
+        
+        return Promise.all(promises)
+            .then(results => {
+                // Flatten into single object
+                let merged = Object.assign(...results);
+                let stringified = JSON.stringify(merged, null, 4);
+                fs.writeFileSync(solutionFile, stringified);
+                console.log("Scrapping done.");
+                console.timeEnd('Execution time');
         });
-        
-        // get max page number in pagination
-        const getMaxPage = $(`#paging1`)[0].attribs.title;
-        maxPage = getMaxPage.split(' ').pop();
-        
-        // create tasks for navigating pages and fetch contents
     })
     .catch(err => {
         console.error(err);
