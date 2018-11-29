@@ -2,7 +2,7 @@ const rp = require('request-promise');
 const cheerio = require('cheerio');
 const Promise = rp.Promise = require('bluebird');
 const fetchContents = require('./fetchContents');
-const url = 'https://www.bankmega.com/ajax.promolainnya.php?product=2&page=';
+
 /**
  * Generate tasks to scrap pages by executing fetchContents
  * as many as maximum page in pagination.
@@ -13,7 +13,7 @@ const url = 'https://www.bankmega.com/ajax.promolainnya.php?product=2&page=';
  *                                      page=
  * @param {string}  categoryName
  * 
- * @returns {Object}    Object of objects grouped under categoryName
+ * @returns {Object}    Object of array grouped under categoryName
  */
  async function taskGenerator(url, categoryName) {
     return rp(url)
