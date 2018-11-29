@@ -1,6 +1,10 @@
 const rp = require('request-promise');
 const cheerio = require('cheerio');
-const rootUrl = 'https://www.bankmega.com/';
+const Promise = rp.Promise = require('bluebird');
+const fetchDetail = require('./fetchDetail');
+
+const config = require('./config.json');
+const rootUrl = config.rootUrl;
 const url = 'https://www.bankmega.com/ajax.promolainnya.php?product=0&subcat=1&page=1';
 const urlTable = { 
    travel:
@@ -24,6 +28,9 @@ const urlTable = {
    others:
     'https://www.bankmega.com/ajax.promolainnya.php?product=0&subcat=6&page=' 
 };
+// receives url that inc [prod,subcat,page]
+// get all promo_detail urls
+// returns list of fetchDetail + other infos which require no further access
 
         rp(url)
             .then(html => {
@@ -47,25 +54,18 @@ const urlTable = {
                             otherWebsitesDetail.push(detail);
                         }
                     });
-                
-                    console.log(detailUrls);
-                    console.log(otherWebsitesDetail);
-                    for (let key in urlTable) {
-                        console.log(`${key} ${urlTable[key]}`);
-                    }
-                // if prefix promo_detail.php
-                // visit link then fetch detail inc image_url
-                // from there
 
-                // else
-                // get title, src, href. no need to visit the link
+                // generate fetchDetail tasks
+                // returns list of fetchDetail results + otherWebsitesDetail
+                return Promise.all(
+                        detailUrls.map(url => {
+                            return fetchDetail(url);
+                        }))
+                        .then(results => {
+                            return results.concat(otherWebsitesDetail);
+                        });
+                
             })
             .catch(err => {
                 console.error(err);
             });
-
-
-
-
-
-// module.exports = fetchContents;

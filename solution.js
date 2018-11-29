@@ -1,8 +1,10 @@
 const rp = require('request-promise');
 const Promise = rp.Promise = require('bluebird');
 const cheerio = require('cheerio');
-const scrapUrl = 'https://www.bankmega.com/promolainnya.php';
-const rootUrl = 'https://www.bankmega.com/';
+
+const config = require('./config.json');
+const scrapUrl = config.scrapUrl;
+const rootUrl = config.rootUrl;
 const phpFilename = scrapUrl.split('/').pop();
 
 rp(scrapUrl)
@@ -31,7 +33,7 @@ rp(scrapUrl)
         }
 
         const productPromo = 
-            $(`div[id='promolain_inside'] ~ div`)
+            $(`#promolain_inside ~ div`)
                 .each(function(i, elem) {
                     idList.push(elem.attribs.id);
                     if (!(elem.attribs.id in categories)) {
@@ -44,9 +46,9 @@ rp(scrapUrl)
         idList.forEach(id => {
             let regex = new RegExp(`${id}.+\\n.+load\\(\\"(.+)\\"`);
             if (!(id in urlTable)) {
-                urlTable[id] = rootUrl 
-                    + getProductSubcatScript.match(regex)[1] 
-                    + `&page=`;
+                urlTable[id] = rootUrl +
+                    getProductSubcatScript.match(regex)[1] +
+                    `&page=`;
             }
         });
         
